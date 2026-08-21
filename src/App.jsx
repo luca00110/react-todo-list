@@ -1,14 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 import "./App.css";
+import FormComponent from "./components/FormComponents";
+import ListComponent from "./components/ListComponents";
+import BtnComponent from "./components/BtnComponents";
+import HeaderComponent from "./components/HeaderComponents";
+import FooterComponent from "./components/FooterComponents";
 
 function App() {
   const [texto, setTexto] = useState("");
-  const [tarefas, setTarefas] = useState([]);
+  const [tarefas, setTarefas] = useState(
+    () => {
+      const tarefasSalvas = localStorage.getItem(
+        "tarefas"
+      );
+
+      // o interrogacao e como se fosse o if
+      // é o operacao ternario
+      return tarefasSalvas ? JSON.parse(tarefasSalvas) : [];
+    }
+  );
+
+  useEffect(() => {
+    localStorage.setItem(
+      "tarefas",
+      JSON.stringify(tarefas)
+    );
+  }, [tarefas]);
 
   function adicionarTarefa() {
     if (texto.trim() !== "") {
       const tarefaJaExiste = tarefas.find(
-        (tarefa) => tarefa.texto.toLowerCase() === texto.trim().toLowerCase()
+        (tarefa) =>
+          tarefa.texto.toLowerCase() ===
+          texto.trim().toLowerCase()
       );
 
       if (tarefaJaExiste) {
@@ -46,6 +71,7 @@ function App() {
           concluida: !tarefa.concluida,
         };
       }
+
       return tarefa;
     });
 
@@ -54,52 +80,41 @@ function App() {
 
   return (
     <div className="container">
-      <h1>Lista de Tarefas</h1>
-
-      <div className="formulario">
-        <input
-          type="text"
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          placeholder="Digite uma tarefa"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              adicionarTarefa();
-            }
-          }}
-        />
-
-        <button onClick={adicionarTarefa}>Adicionar</button>
-      </div>
-
-      <p className="digitado">Você digitou: {texto}</p>
+      <HeaderComponent />
+      <p className="digitado">
+        Você digitou: {texto}
+      </p>
 
       {tarefas.length === 0 && (
-        <p className="vazio">Nenhuma tarefa cadastrada</p>
+        <p className="vazio">
+          Nenhuma tarefa cadastrada
+        </p>
       )}
 
-      <ul className="lista">
-        {tarefas.map((tarefa, indice) => (
-          <li className="item" key={indice}>
-            <span className={tarefa.concluida ? "concluida" : ""}>
-              {tarefa.texto}
-            </span>
+      <FormComponent
+        texto={texto}
+        setTexto={setTexto}
+        adicionarTarefa={adicionarTarefa}
+      />
 
-            <div className="acoes">
-              <button onClick={() => concluirTarefa(indice)}>
-                {tarefa.concluida ? "Desfazer" : "Concluir"}
-              </button>
-              <button onClick={() => removerTarefa(indice)}>Remover</button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <BtnComponent
+        adicionarTarefa={adicionarTarefa}
+        limparTarefas={limparTarefas}
+        tarefas={tarefas}
+      />
 
-      <p className="digitando">Total de tarefas: {tarefas.length}</p>
+      <ListComponent
+        tarefas={tarefas}
+        concluirTarefa={concluirTarefa}
+        removerTarefa={removerTarefa}
+      />
 
-      {tarefas.length > 0 && (
-        <button onClick={limparTarefas}>Limpar Tarefas</button>
-      )}
+      <p className="digitando">
+        Total de tarefas: {tarefas.length}
+      </p>
+
+      <FooterComponent />
+
     </div>
   );
 }
